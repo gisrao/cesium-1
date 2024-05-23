@@ -1,16 +1,30 @@
-import { Cartesian2 } from "../Source/Cesium.js";
-import { clone } from "../Source/Cesium.js";
-import { defaultValue } from "../Source/Cesium.js";
-import { defined } from "../Source/Cesium.js";
-import { Scene } from "../Source/Cesium.js";
+import {
+  Cartesian2,
+  clone,
+  defaultValue,
+  defined,
+  Scene,
+} from "@cesium/engine";
+
 import createCanvas from "./createCanvas.js";
 import getWebGLStub from "./getWebGLStub.js";
 
 function createScene(options) {
   options = defaultValue(options, {});
 
+  // Render tests can be difficult to debug. Let the caller choose a larger
+  // canvas size temporarily. By stepping through a render test, you can see
+  // what the camera sees after each render call.
+  const debugWidth = window.debugCanvasWidth;
+  const debugHeight = defaultValue(
+    window.debugCanvasHeight,
+    window.debugCanvasWidth
+  );
+
   // save the canvas so we don't try to clone an HTMLCanvasElement
-  var canvas = defined(options.canvas) ? options.canvas : createCanvas();
+  const canvas = defined(options.canvas)
+    ? options.canvas
+    : createCanvas(debugWidth, debugHeight);
   options.canvas = undefined;
 
   options = clone(options, true);
@@ -18,7 +32,7 @@ function createScene(options) {
   options.canvas = canvas;
   options.contextOptions = defaultValue(options.contextOptions, {});
 
-  var contextOptions = options.contextOptions;
+  const contextOptions = options.contextOptions;
   contextOptions.webgl = defaultValue(contextOptions.webgl, {});
   contextOptions.webgl.antialias = defaultValue(
     contextOptions.webgl.antialias,
@@ -32,11 +46,11 @@ function createScene(options) {
     contextOptions.getWebGLStub = getWebGLStub;
   }
 
-  var scene = new Scene(options);
+  const scene = new Scene(options);
   scene.highDynamicRange = false;
 
   if (!!window.webglValidation) {
-    var context = scene.context;
+    const context = scene.context;
     context.validateShaderProgram = true;
     context.validateFramebuffer = true;
     context.logShaderCompilation = true;
@@ -45,7 +59,7 @@ function createScene(options) {
 
   // Add functions for test
   scene.destroyForSpecs = function () {
-    var canvas = this.canvas;
+    const canvas = this.canvas;
     this.destroy();
     document.body.removeChild(canvas);
   };

@@ -46,25 +46,27 @@
       </table>
     </div>
     <script id="cesium_sandcastle_script">
-      function startup(Cesium) {
+      window.startup = async function (Cesium) {
         "use strict";
         //Sandcastle_Begin
-        var viewer = new Cesium.Viewer("cesiumContainer", {
-          imageryProvider: new Cesium.TileMapServiceImageryProvider({
-            url: Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII"),
-          }),
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          baseLayer: Cesium.ImageryLayer.fromProviderAsync(
+            Cesium.TileMapServiceImageryProvider.fromUrl(
+              Cesium.buildModuleUrl("Assets/Textures/NaturalEarthII")
+            )
+          ),
           baseLayerPicker: false,
         });
 
-        var canvas = viewer.canvas;
+        const canvas = viewer.canvas;
         canvas.setAttribute("tabindex", "0"); // needed to put focus on the canvas
         canvas.onclick = function () {
           canvas.focus();
         };
 
-        var scene = viewer.scene;
+        const scene = viewer.scene;
 
-        var defaultImageryLayerCutout = Cesium.Rectangle.fromDegrees(
+        const defaultImageryLayerCutout = Cesium.Rectangle.fromDegrees(
           -90,
           20,
           -70,
@@ -72,22 +74,25 @@
         );
 
         // Cut a rectangle out of the base layer
-        var layers = viewer.imageryLayers;
-        var imageryBaseLayer = layers.get(0);
+        const layers = viewer.imageryLayers;
+        const imageryBaseLayer = layers.get(0);
 
         imageryBaseLayer.cutoutRectangle = defaultImageryLayerCutout;
 
         // Fit a SingleTileImageryProvider inside the cutout on the lowest layer
-        layers.addImageryProvider(
-          new Cesium.SingleTileImageryProvider({
-            url: "../images/Cesium_Logo_overlay.png",
-            rectangle: defaultImageryLayerCutout,
-          })
+        const logo = Cesium.ImageryLayer.fromProviderAsync(
+          Cesium.SingleTileImageryProvider.fromUrl(
+            "../images/Cesium_Logo_overlay.png",
+            {
+              rectangle: defaultImageryLayerCutout,
+            }
+          )
         );
+        layers.add(logo);
 
         // Add an Earth at Night layer and a "traveling" cutout
-        var earthAtNight = layers.addImageryProvider(
-          new Cesium.IonImageryProvider({ assetId: 3812 })
+        const earthAtNight = Cesium.ImageryLayer.fromProviderAsync(
+          Cesium.IonImageryProvider.fromAssetId(3812)
         );
         earthAtNight.cutoutRectangle = Cesium.Rectangle.fromDegrees(
           -100,
@@ -96,24 +101,25 @@
           50
         );
         earthAtNight.alpha = 0.9;
+        layers.add(earthAtNight);
 
         // "traveling" code
-        var flags = {
+        const flags = {
           moveEast: false,
           moveWest: false,
           moveNorth: false,
           moveSouth: false,
         };
 
-        function getFlagForKeyCode(keyCode) {
-          switch (keyCode) {
-            case "W".charCodeAt(0):
+        function getFlagForKeyCode(code) {
+          switch (code) {
+            case "KeyW":
               return "moveNorth";
-            case "S".charCodeAt(0):
+            case "KeyS":
               return "moveSouth";
-            case "D".charCodeAt(0):
+            case "KeyD":
               return "moveEast";
-            case "A".charCodeAt(0):
+            case "KeyA":
               return "moveWest";
             default:
               return undefined;
@@ -123,7 +129,7 @@
         document.addEventListener(
           "keydown",
           function (e) {
-            var flagName = getFlagForKeyCode(e.keyCode);
+            const flagName = getFlagForKeyCode(e.code);
             if (typeof flagName !== "undefined") {
               flags[flagName] = true;
             }
@@ -134,7 +140,7 @@
         document.addEventListener(
           "keyup",
           function (e) {
-            var flagName = getFlagForKeyCode(e.keyCode);
+            const flagName = getFlagForKeyCode(e.code);
             if (typeof flagName !== "undefined") {
               flags[flagName] = false;
             }
@@ -142,9 +148,9 @@
           false
         );
 
-        var moveIncrement = 0.05;
+        const moveIncrement = 0.05;
         viewer.clock.onTick.addEventListener(function (clock) {
-          var travelingRectangle = earthAtNight.cutoutRectangle;
+          const travelingRectangle = earthAtNight.cutoutRectangle;
           if (
             flags.moveNorth &&
             travelingRectangle.north + moveIncrement < Cesium.Math.PI_OVER_TWO
@@ -182,11 +188,14 @@
         }
 
         //Sandcastle_End
-        Sandcastle.finishedLoading();
-      }
+      };
       if (typeof Cesium !== "undefined") {
         window.startupCalled = true;
-        startup(Cesium);
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
       }
     </script>
   </body>

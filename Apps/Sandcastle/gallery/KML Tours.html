@@ -30,16 +30,16 @@
     <div id="toolbar"></div>
 
     <script id="cesium_sandcastle_script">
-      function startup(Cesium) {
+      window.startup = async function (Cesium) {
         "use strict";
         //Sandcastle_Begin
-        var viewer = new Cesium.Viewer("cesiumContainer");
-        var options = {
+        const viewer = new Cesium.Viewer("cesiumContainer");
+        const options = {
           camera: viewer.scene.camera,
           canvas: viewer.scene.canvas,
         };
 
-        var tour = null;
+        let tour = null;
         viewer.dataSources
           .add(
             Cesium.KmlDataSource.load(
@@ -53,20 +53,18 @@
               console.log("Start tour");
             });
             tour.tourEnd.addEventListener(function (terminated) {
-              console.log((terminated ? "Terminate" : "End") + " tour");
+              console.log(`${terminated ? "Terminate" : "End"} tour`);
             });
             tour.entryStart.addEventListener(function (entry) {
-              console.log("Play " + entry.type + " (" + entry.duration + ")");
+              console.log(`Play ${entry.type} (${entry.duration})`);
             });
             tour.entryEnd.addEventListener(function (entry, terminated) {
-              console.log(
-                (terminated ? "Terminate" : "End") + " " + entry.type
-              );
+              console.log(`${terminated ? "Terminate" : "End"} ${entry.type}`);
             });
           });
 
         Sandcastle.addToolbarButton("Play", function () {
-          tour.play(viewer);
+          tour.play(viewer.cesiumWidget);
         });
 
         Sandcastle.addToolbarButton("Terminate", function () {
@@ -79,11 +77,14 @@
           viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK;
         };
         //Sandcastle_End
-        Sandcastle.finishedLoading();
-      }
+      };
       if (typeof Cesium !== "undefined") {
         window.startupCalled = true;
-        startup(Cesium);
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
       }
     </script>
   </body>

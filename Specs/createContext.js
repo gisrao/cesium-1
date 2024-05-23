@@ -1,6 +1,5 @@
-import { clone } from "../Source/Cesium.js";
-import { defaultValue } from "../Source/Cesium.js";
-import { Context } from "../Source/Cesium.js";
+import { clone, defaultValue, Context } from "@cesium/engine";
+
 import createCanvas from "./createCanvas.js";
 import createFrameState from "./createFrameState.js";
 import getWebGLStub from "./getWebGLStub.js";
@@ -14,8 +13,8 @@ function createContext(options, canvasWidth, canvasHeight) {
     options.getWebGLStub = getWebGLStub;
   }
 
-  var canvas = createCanvas(canvasWidth, canvasHeight);
-  var context = new Context(canvas, options);
+  const canvas = createCanvas(canvasWidth, canvasHeight);
+  const context = new Context(canvas, options);
 
   if (!!window.webglValidation) {
     context.validateShaderProgram = true;
@@ -24,7 +23,7 @@ function createContext(options, canvasWidth, canvasHeight) {
     context.throwOnWebGLError = true;
   }
 
-  var us = context.uniformState;
+  const us = context.uniformState;
   us.update(createFrameState(context));
 
   // Add function for test

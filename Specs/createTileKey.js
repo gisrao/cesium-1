@@ -1,5 +1,4 @@
-import { defined } from "../Source/Cesium.js";
-import { DeveloperError } from "../Source/Cesium.js";
+import { defined, DeveloperError } from "@cesium/engine";
 
 function createTileKey(xOrTile, y, level) {
   if (!defined(xOrTile)) {
@@ -7,11 +6,11 @@ function createTileKey(xOrTile, y, level) {
   }
 
   if (typeof xOrTile === "object") {
-    var tile = xOrTile;
+    const tile = xOrTile;
     xOrTile = tile.x;
     y = tile.y;
     level = tile.level;
   }
-  return "L" + level + "X" + xOrTile + "Y" + y;
+  return `L${level}X${xOrTile}Y${y}`;
 }
 export default createTileKey;

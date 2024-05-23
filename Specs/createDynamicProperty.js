@@ -1,7 +1,7 @@
-import { ConstantProperty } from "../Source/Cesium.js";
+import { ConstantProperty } from "@cesium/engine";
 
 function createDynamicProperty(value) {
-  var property = new ConstantProperty(value);
+  const property = new ConstantProperty(value);
   Object.defineProperties(property, {
     isConstant: {
       value: false,

@@ -1,5 +1,5 @@
 {
-    "extends": "../Source/.eslintrc.json",
+    "extends": "../packages/.eslintrc.json",
     "env": {
         "jasmine": true
     },
@@ -9,7 +9,8 @@
     "overrides": [
         {
             "files": [
-                "karma.conf.cjs"
+                "karma.conf.cjs",
+                "test.cjs"
             ],
             "parserOptions": {
                 "sourceType": "script"

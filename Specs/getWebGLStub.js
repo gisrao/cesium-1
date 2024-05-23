@@ -1,11 +1,13 @@
-import { clone } from "../Source/Cesium.js";
-import { defaultValue } from "../Source/Cesium.js";
-import { defined } from "../Source/Cesium.js";
-import { DeveloperError } from "../Source/Cesium.js";
-import { WebGLConstants } from "../Source/Cesium.js";
+import {
+  clone,
+  defaultValue,
+  defined,
+  DeveloperError,
+  WebGLConstants,
+} from "@cesium/engine";
 
 function getWebGLStub(canvas, options) {
-  var stub = clone(WebGLConstants);
+  const stub = clone(WebGLConstants);
 
   stub.canvas = canvas;
   stub.drawingBufferWidth = Math.max(canvas.width, 1);
@@ -151,6 +153,13 @@ function getWebGLStub(canvas, options) {
   return stub;
 }
 
+// ANGLE_instanced_arrays
+const instancedArraysStub = {
+  drawElementsInstancedANGLE: noop,
+  drawArraysInstancedANGLE: noop,
+  vertexAttribDivisorANGLE: noop,
+};
+
 function noop() {}
 
 function createStub() {
@@ -174,7 +183,7 @@ function checkFramebufferStatusStub(target) {
 }
 
 function getContextAttributesStub(options) {
-  var contextAttributes = {
+  const contextAttributes = {
     alpha: defaultValue(options.alpha, true),
     depth: defaultValue(options.depth, true),
     stencil: defaultValue(options.stencil, false),
@@ -198,13 +207,23 @@ function getErrorStub() {
 }
 
 function getExtensionStub(name) {
-  // No extensions are stubbed.
+  // Many 3D Tiles tests rely on instanced arrays
+  if (name === "ANGLE_instanced_arrays") {
+    return instancedArraysStub;
+  }
+
+  // Voxel tests rely on floating point textures
+  if (name === "OES_texture_float") {
+    return {};
+  }
+
+  // No other extensions are stubbed.
   return null;
 }
 
 function getParameterStub(options) {
   // These are not the minimum maximum; instead, they are typical maximums.
-  var parameterStubValues = {};
+  const parameterStubValues = {};
   parameterStubValues[WebGLConstants.STENCIL_BITS] = options.stencil ? 8 : 0;
   parameterStubValues[WebGLConstants.MAX_COMBINED_TEXTURE_IMAGE_UNITS] = 32;
   parameterStubValues[WebGLConstants.MAX_CUBE_MAP_TEXTURE_SIZE] = 16384;
@@ -222,14 +241,15 @@ function getParameterStub(options) {
   parameterStubValues[WebGLConstants.MAX_TEXTURE_MAX_ANISOTROPY_EXT] = 16; // Assuming extension
   parameterStubValues[WebGLConstants.MAX_DRAW_BUFFERS] = 8; // Assuming extension
   parameterStubValues[WebGLConstants.MAX_COLOR_ATTACHMENTS] = 8; // Assuming extension
+  parameterStubValues[WebGLConstants.MAX_SAMPLES] = 8; // Assuming WebGL2
 
   return function (pname) {
-    var value = parameterStubValues[pname];
+    const value = parameterStubValues[pname];
 
     //>>includeStart('debug', pragmas.debug);
     if (!defined(value)) {
       throw new DeveloperError(
-        "A WebGL parameter stub for " + pname + " is not defined. Add it."
+        `A WebGL parameter stub for ${pname} is not defined. Add it.`
       );
     }
     //>>includeEnd('debug');
@@ -255,7 +275,7 @@ function getProgramParameterStub(program, pname) {
 
   //>>includeStart('debug', pragmas.debug);
   throw new DeveloperError(
-    "A WebGL parameter stub for " + pname + " is not defined. Add it."
+    `A WebGL parameter stub for ${pname} is not defined. Add it.`
   );
   //>>includeEnd('debug');
 }
@@ -264,7 +284,7 @@ function getShaderParameterStub(shader, pname) {
   //>>includeStart('debug', pragmas.debug);
   if (pname !== WebGLConstants.COMPILE_STATUS) {
     throw new DeveloperError(
-      "A WebGL parameter stub for " + pname + " is not defined. Add it."
+      `A WebGL parameter stub for ${pname} is not defined. Add it.`
     );
   }
   //>>includeEnd('debug');

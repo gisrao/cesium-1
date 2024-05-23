@@ -1,9 +1,6 @@
-define([], function () {
-  "use strict";
+import { createTaskProcessorWorker } from "@cesium/engine";
 
-  return function returnWasmConfig(event) {
-    var data = event.data;
-    var wasmConfig = data.webAssemblyConfig;
-    self.postMessage(wasmConfig);
-  };
+export default createTaskProcessorWorker(function returnWasmConfig(parameters) {
+  const wasmConfig = parameters.webAssemblyConfig;
+  return wasmConfig;
 });

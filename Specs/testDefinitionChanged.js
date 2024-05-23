@@ -1,10 +1,10 @@
-import { ConstantProperty } from "../Source/Cesium.js";
+import { ConstantProperty } from "@cesium/engine";
 
 function testDefinitionChanged(property, name, value1, value2) {
-  var listener = jasmine.createSpy("listener");
+  const listener = jasmine.createSpy("listener");
   property.definitionChanged.addEventListener(listener);
 
-  var oldValue = property[name];
+  const oldValue = property[name];
   property[name] = new ConstantProperty(value1);
   expect(listener).toHaveBeenCalledWith(
     property,

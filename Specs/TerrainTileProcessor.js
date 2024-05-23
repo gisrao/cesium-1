@@ -1,9 +1,10 @@
-import { clone } from "../Source/Cesium.js";
-import { Texture } from "../Source/Cesium.js";
-import { GlobeSurfaceTile } from "../Source/Cesium.js";
-import { ImageryLayer } from "../Source/Cesium.js";
-import { TerrainState } from "../Source/Cesium.js";
-import { when } from "../Source/Cesium.js";
+import {
+  clone,
+  ImageryLayer,
+  GlobeSurfaceTile,
+  TerrainState,
+  Texture,
+} from "@cesium/engine";
 
 function TerrainTileProcessor(
   frameState,
@@ -17,9 +18,7 @@ function TerrainTileProcessor(
 
 // Processes the given list of tiles until all terrain and imagery states stop changing.
 TerrainTileProcessor.prototype.process = function (tiles, maxIterations) {
-  var that = this;
-
-  var deferred = when.defer();
+  const that = this;
 
   function getState(tile) {
     return [
@@ -41,8 +40,8 @@ TerrainTileProcessor.prototype.process = function (tiles, maxIterations) {
       return false;
     }
 
-    var same = true;
-    for (var i = 0; i < a.length; ++i) {
+    let same = true;
+    for (let i = 0; i < a.length; ++i) {
       if (Array.isArray(a[i]) && Array.isArray(b[i])) {
         same = same && statesAreSame(a[i], b[i]);
       } else if (Array.isArray(a[i]) || Array.isArray(b[i])) {
@@ -55,54 +54,47 @@ TerrainTileProcessor.prototype.process = function (tiles, maxIterations) {
     return same;
   }
 
-  var iterations = 0;
+  return new Promise((resolve) => {
+    let iterations = 0;
 
-  function next() {
-    ++iterations;
-    ++that.frameState.frameNumber;
+    function next() {
+      ++iterations;
+      ++that.frameState.frameNumber;
 
-    // Keep going until all terrain and imagery provider are ready and states are no longer changing.
-    var changed = !that.terrainProvider.ready;
+      // Keep going until all terrain and imagery provider are ready and states are no longer changing.
+      let changed = false;
 
-    for (var i = 0; i < that.imageryLayerCollection.length; ++i) {
-      changed =
-        changed || !that.imageryLayerCollection.get(i).imageryProvider.ready;
-    }
-
-    if (that.terrainProvider.ready) {
       tiles.forEach(function (tile) {
-        var beforeState = getState(tile);
+        const beforeState = getState(tile);
         GlobeSurfaceTile.processStateMachine(
           tile,
           that.frameState,
           that.terrainProvider,
           that.imageryLayerCollection
         );
-        var afterState = getState(tile);
+        const afterState = getState(tile);
         changed =
           changed ||
           tile.data.terrainState === TerrainState.RECEIVING ||
           tile.data.terrainState === TerrainState.TRANSFORMING ||
           !statesAreSame(beforeState, afterState);
       });
+
+      if (!changed || iterations >= maxIterations) {
+        resolve(iterations);
+      } else {
+        setTimeout(next, 0);
+      }
     }
 
-    if (!changed || iterations >= maxIterations) {
-      deferred.resolve(iterations);
-    } else {
-      setTimeout(next, 0);
-    }
-  }
-
-  next();
-
-  return deferred.promise;
+    next();
+  });
 };
 
 TerrainTileProcessor.prototype.mockWebGL = function () {
   spyOn(GlobeSurfaceTile, "_createVertexArrayForMesh").and.callFake(
     function () {
-      var vertexArray = jasmine.createSpyObj("VertexArray", [
+      const vertexArray = jasmine.createSpyObj("VertexArray", [
         "destroy",
         "isDestroyed",
       ]);
@@ -114,7 +106,7 @@ TerrainTileProcessor.prototype.mockWebGL = function () {
     context,
     imagery
   ) {
-    var texture = jasmine.createSpyObj("Texture", ["destroy"]);
+    const texture = jasmine.createSpyObj("Texture", ["destroy"]);
     texture.width = imagery.image.width;
     texture.height = imagery.image.height;
     return texture;
@@ -123,7 +115,7 @@ TerrainTileProcessor.prototype.mockWebGL = function () {
   spyOn(ImageryLayer.prototype, "_finalizeReprojectTexture");
 
   spyOn(Texture, "create").and.callFake(function (options) {
-    var result = clone(options);
+    const result = clone(options);
     result.destroy = function () {};
     return result;
   });

@@ -36,14 +36,14 @@
       <div id="sampleButtons"></div>
     </div>
     <script id="cesium_sandcastle_script">
-      function startup(Cesium) {
+      window.startup = async function (Cesium) {
         "use strict";
         //Sandcastle_Begin
-        var viewer = new Cesium.Viewer("cesiumContainer", {
-          terrainProvider: Cesium.createWorldTerrain(),
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          terrain: Cesium.Terrain.fromWorldTerrain(),
         });
 
-        var scene = viewer.scene;
+        const scene = viewer.scene;
         scene.globe.depthTestAgainstTerrain = true;
 
         //Add Cesium Inspector
@@ -99,18 +99,21 @@
           })
         );
 
-        var billboards = scene.primitives.add(new Cesium.BillboardCollection());
+        const billboards = scene.primitives.add(
+          new Cesium.BillboardCollection()
+        );
         billboards.add({
           position: Cesium.Cartesian3.fromDegrees(-75.59777, 40.03883, 150000),
           image: "../images/Cesium_Logo_overlay.png",
-        });
-
-        //Sandcastle_End
-        Sandcastle.finishedLoading();
-      }
+        }); //Sandcastle_End
+      };
       if (typeof Cesium !== "undefined") {
         window.startupCalled = true;
-        startup(Cesium);
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
       }
     </script>
   </body>

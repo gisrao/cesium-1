@@ -73,17 +73,17 @@
       </table>
     </div>
     <script id="cesium_sandcastle_script">
-      function startup(Cesium) {
+      window.startup = async function (Cesium) {
         "use strict";
         //Sandcastle_Begin
-        var viewer = new Cesium.Viewer("cesiumContainer", {
-          terrainProvider: Cesium.createWorldTerrain(),
+        const viewer = new Cesium.Viewer("cesiumContainer", {
+          terrain: Cesium.Terrain.fromWorldTerrain(),
         });
 
-        var scene = viewer.scene;
-        var globe = scene.globe;
-        globe.terrainExaggeration = 2.0;
-        globe.terrainExaggerationRelativeHeight = 2400.0;
+        const scene = viewer.scene;
+        const globe = scene.globe;
+        scene.verticalExaggeration = 2.0;
+        scene.verticalExaggerationRelativeHeight = 2400.0;
 
         scene.camera.setView({
           destination: new Cesium.Cartesian3(
@@ -111,14 +111,14 @@
           },
         });
 
-        var visualizeRelativeHeight = true;
+        let visualizeRelativeHeight = true;
 
         function updateMaterial() {
           if (visualizeRelativeHeight) {
-            var height = globe.terrainExaggerationRelativeHeight;
-            var exaggeration = globe.terrainExaggeration;
-            var alpha = Math.min(1.0, exaggeration * 0.25);
-            var layer = {
+            const height = scene.verticalExaggerationRelativeHeight;
+            const exaggeration = scene.verticalExaggeration;
+            const alpha = Math.min(1.0, exaggeration * 0.25);
+            const layer = {
               extendUpwards: true,
               extendDownwards: true,
               entries: [
@@ -154,23 +154,23 @@
         }
         updateMaterial();
 
-        var viewModel = {
-          exaggeration: globe.terrainExaggeration,
-          relativeHeight: globe.terrainExaggerationRelativeHeight,
+        const viewModel = {
+          exaggeration: scene.verticalExaggeration,
+          relativeHeight: scene.verticalExaggerationRelativeHeight,
         };
 
         function updateExaggeration() {
-          globe.terrainExaggeration = Number(viewModel.exaggeration);
-          globe.terrainExaggerationRelativeHeight = Number(
+          scene.verticalExaggeration = Number(viewModel.exaggeration);
+          scene.verticalExaggerationRelativeHeight = Number(
             viewModel.relativeHeight
           );
           updateMaterial();
         }
 
         Cesium.knockout.track(viewModel);
-        var toolbar = document.getElementById("toolbar");
+        const toolbar = document.getElementById("toolbar");
         Cesium.knockout.applyBindings(viewModel, toolbar);
-        for (var name in viewModel) {
+        for (const name in viewModel) {
           if (viewModel.hasOwnProperty(name)) {
             Cesium.knockout
               .getObservable(viewModel, name)
@@ -192,11 +192,14 @@
           viewModel.relativeHeight = 0.0;
         });
         //Sandcastle_End
-        Sandcastle.finishedLoading();
-      }
+      };
       if (typeof Cesium !== "undefined") {
         window.startupCalled = true;
-        startup(Cesium);
+        window.startup(Cesium).catch((error) => {
+          "use strict";
+          console.error(error);
+        });
+        Sandcastle.finishedLoading();
       }
     </script>
   </body>
